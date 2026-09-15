@@ -26,7 +26,7 @@ After using a space, students can rate their experience — comfort, accuracy of
 |---|---|
 | Interactive Campus Map & Building Explorer | *TBD* |
 | Smart Recommendation Engine | *TBD* |
-| Amenity & Attribute Database | *TBD* |
+| Amenity & Attribute Database | *Md Mamun* |
 | User Feedback & Ratings | *TBD* |
 
 ---
