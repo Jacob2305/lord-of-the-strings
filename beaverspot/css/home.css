@@ -6,7 +6,7 @@
 .hero {
   position: relative;
   isolation: isolate;
-  min-height: clamp(420px, 62vh, 600px);
+  min-height: clamp(280px, 40vh, 400px);
   display: flex; align-items: flex-end;
   color: #fff;
   --focus: var(--accent);
@@ -25,15 +25,15 @@
 .hero .photo.is-missing .photo__ph span,
 .hero .photo.is-missing .photo__ph code { position: relative; z-index: 1; color: #fff; background: rgba(42, 19, 64, 0.6); }
 
-.hero__content { padding-block: clamp(3rem, 9vw, 5.5rem) clamp(2.5rem, 6vw, 4rem); }
+.hero__content { padding-block: clamp(2rem, 5vw, 3rem) clamp(1.75rem, 4vw, 2.5rem); }
 .hero__eyebrow {
   margin: 0 0 0.75rem;
   font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
   display: inline-flex; align-items: center; gap: 0.6rem;
 }
 .hero__eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--accent); }
-.hero h1 { margin: 0; font-size: clamp(2.3rem, 6vw, 4.2rem); font-weight: 600; max-width: 14ch; }
-.hero__sub { margin: 0.5rem 0 1.75rem; font-family: var(--font-display); font-style: italic; font-size: clamp(1.15rem, 2.4vw, 1.5rem); color: #f1eaf9; }
+.hero h1 { margin: 0; font-size: clamp(2.1rem, 5vw, 3.6rem); font-weight: 600; }
+.hero__sub { margin: 0.35rem 0 1.25rem; font-family: var(--font-display); font-style: italic; font-size: clamp(1.15rem, 2.4vw, 1.5rem); color: #f1eaf9; }
 
 /* ---------- section heads ---------- */
 .section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 2rem; margin-bottom: 1.5rem; }
@@ -62,40 +62,19 @@
 @media (max-width: 599px) { .tile__photo { aspect-ratio: 3 / 2; } }
 .tile__photo img { transition: transform 0.5s ease; }
 
-.tile .chip { position: absolute; top: 0.75rem; left: 0.75rem; }
-
 .tile__caption {
   position: absolute; left: 0; right: 0; bottom: 0;
-  padding: 3.5rem 1rem 1rem;
-  background: linear-gradient(0deg, rgba(31, 17, 46, 0.92) 0%, rgba(31, 17, 46, 0.7) 45%, rgba(31, 17, 46, 0) 100%);
-  transform: translateY(1.6rem);
-  transition: transform 0.3s ease;
+  padding: 3rem 1rem 1rem;
+  background: linear-gradient(0deg, rgba(31, 17, 46, 0.88) 0%, rgba(31, 17, 46, 0.55) 50%, rgba(31, 17, 46, 0) 100%);
 }
 .tile__name { margin: 0; font-size: 1.35rem; color: #fff; }
-.tile__meta { margin: 0.2rem 0 0; font-size: 0.88rem; color: #efe7f8; opacity: 0; transition: opacity 0.3s ease; }
 
-/* live tile: lift, zoom the photo a touch, slide the caption up */
-.tile--live:hover,
-.tile--live:focus-visible { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(31, 27, 36, 0.18); }
-.tile--live:hover .tile__photo img,
-.tile--live:focus-visible .tile__photo img { transform: scale(1.04); }
-.tile--live:hover .tile__caption,
-.tile--live:focus-visible .tile__caption { transform: translateY(0); }
-.tile--live:hover .tile__meta,
-.tile--live:focus-visible .tile__meta { opacity: 1; }
-.tile--live:focus-visible { outline-offset: 3px; }
-/* on touch screens there is no hover, so show the caption in full */
-@media (hover: none) {
-  .tile__caption { transform: none; }
-  .tile__meta { opacity: 1; }
-}
-
-/* coming-soon tile: dimmed, no lift, caption always shown */
-.tile--soon { cursor: default; }
-.tile--soon .tile__photo img { filter: grayscale(0.85) brightness(0.8); opacity: 0.75; }
-.tile--soon .tile__photo .photo__ph { opacity: 0.7; }
-.tile--soon .tile__caption { transform: none; }
-.tile--soon .tile__meta { opacity: 1; color: #e2dbea; }
+/* hover / keyboard focus: lift and zoom the photo a touch */
+.tile:hover,
+.tile:focus-visible { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(31, 27, 36, 0.18); }
+.tile:hover .tile__photo img,
+.tile:focus-visible .tile__photo img { transform: scale(1.04); }
+.tile:focus-visible { outline-offset: 3px; }
 
 .tiles__error { color: var(--muted); }
 
@@ -118,11 +97,10 @@
 .steps p { margin: 0; color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile, .tile__caption, .tile__photo img, .tile__meta { transition: none; }
-  .tile--live:hover, .tile--live:focus-visible { transform: none; }
-  .tile--live:hover .tile__photo img, .tile--live:focus-visible .tile__photo img { transform: none; }
+  .tile, .tile__photo img { transition: none; }
+  .tile:hover, .tile:focus-visible { transform: none; }
+  .tile:hover .tile__photo img, .tile:focus-visible .tile__photo img { transform: none; }
 }
 
-/* "How it works" already ends the page with a full-width band */
+/* "How it works" is the last band on the page */
 .how { border-bottom: 0; }
-.site-footer { margin-top: 0; }

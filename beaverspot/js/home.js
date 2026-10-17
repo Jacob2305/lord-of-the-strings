@@ -20,27 +20,11 @@
       h("li", { class: "tiles__error", text: "Could not load the building list. Open the site through a local server (for example VS Code Live Server)." }));
   });
 
+  // Every building gets the same tile and links to its page; buildings that
+  // are not mapped yet show a plain "coming soon" page there.
   function tile(b) {
-    const live = b.status === "live";
     const pic = S.photo({ src: b.image, alt: "", focus: b.focus, label: b.short, className: "tile__photo" });
-    const chip = h("span", { class: "chip " + (live ? "chip--open" : "chip--soon"), text: live ? "Open" : "Coming soon" });
-    const floors = (b.floors || []).filter((f) => f.status === "live");
-    const caption = h("div", { class: "tile__caption" }, [
-      h("h3", { class: "tile__name", text: b.name }),
-      h("p", { class: "tile__meta", text: live
-        ? floors.length + (floors.length === 1 ? " floor mapped" : " floors mapped") : "Not mapped yet" }),
-    ]);
-    // the photo is decorative here (the caption names the building); its alt
-    // text is used on the building page banner instead
-    const body = [pic, chip, caption];
-    let card;
-    if (live) {
-      card = h("a", { class: "tile tile--live", href: "building.html?building=" + encodeURIComponent(b.id),
-        "aria-label": b.name + " (" + b.short + "), open. " + caption.querySelector(".tile__meta").textContent }, body);
-    } else {
-      card = h("div", { class: "tile tile--soon", "aria-disabled": "true",
-        "aria-label": b.name + ", coming soon", role: "group" }, body);
-    }
-    return h("li", {}, [card]);
+    const caption = h("div", { class: "tile__caption" }, [h("h3", { class: "tile__name", text: b.name })]);
+    return h("li", {}, [h("a", { class: "tile", href: "building.html?building=" + encodeURIComponent(b.id) }, [pic, caption])]);
   }
 })();

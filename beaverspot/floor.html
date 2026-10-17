@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Floor 6 | BeaverSpot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500..700;1,6..72,500..600&family=Public+Sans:wght@400;500;600;700&display=swap" />
+  <!-- site.css: shared header + breadcrumb; floor.css: this page -->
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/floor.css" />
+</head>
+<body data-page="floor">
+  <a class="fp-skip" href="#fp-rooms">Skip to room list</a>
+
+  <!-- shared header + breadcrumb, drawn by js/site.js (Home > NAC > Floor 6 from the URL) -->
+  <header id="site-header"><a href="index.html">BeaverSpot</a></header>
+  <nav id="crumbs"></nav>
+
+  <main class="fp-layout">
+    <!-- ============ LEFT PANEL: room picker ============ -->
+    <aside class="fp-side" aria-label="Rooms">
+      <h1 id="fp-title" class="fp-title">Floor 6</h1>
+      <!-- room picker: first the series (6100s / 6200s / 6300s), then the last digits.
+           Both rows are built by js/floor.js from the rooms in the floor's JSON. -->
+      <h2 class="fp-pick-title" id="fp-rooms" tabindex="-1">Find a room</h2>
+      <div class="fp-series" id="fp-series" role="group" aria-labelledby="fp-rooms"></div>
+      <p class="fp-count" id="fp-count" aria-live="polite"></p>
+      <ul class="fp-list" id="fp-list" aria-labelledby="fp-count"></ul>
+    </aside>
+
+    <!-- ============ RIGHT: map, with room details below it once a room is picked ============ -->
+    <div class="fp-stage" id="fp-stage">
+      <!-- ============ MAP: everything inside is drawn by js/floor.js from data/floor-6.json ============ -->
+      <section class="fp-map" id="fp-map" aria-label="Floor plan" tabindex="-1">
+        <div class="fp-zoom" role="group" aria-label="Zoom">
+          <button type="button" id="fp-zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" id="fp-zoom-out" aria-label="Zoom out">&minus;</button>
+          <button type="button" id="fp-zoom-reset" aria-label="Show whole floor">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" /></svg>
+          </button>
+        </div>
+
+        <!-- zoom controls come first in the tab order, then the rooms -->
+        <svg id="fp-svg" class="fp-svg" xmlns="http://www.w3.org/2000/svg" role="group"
+             aria-labelledby="fp-title" focusable="false"></svg>
+
+        <ul class="fp-legend" aria-label="Legend">
+          <li><i class="sw-room"></i>Room</li>
+          <li><i class="sw-core"></i>Stairs, elevator</li>
+          <li><i class="sw-restroom"></i>Restroom</li>
+          <li><i class="sw-closet"></i>Utility</li>
+          <li><i class="sw-void"></i>Open shaft</li>
+        </ul>
+
+        <p class="fp-status" id="fp-status" role="status"></p>
+      </section>
+
+      <!-- ============ ROOM DETAILS: shown under the map once a room is picked ============ -->
+      <section class="fp-details" id="fp-details" aria-labelledby="fp-details-title" hidden>
+        <button type="button" class="fp-details-close" id="fp-details-close" aria-label="Close room details">&times;</button>
+        <p class="fp-details-where" id="fp-details-where"></p>
+        <h2 id="fp-details-title" tabindex="-1"></h2>
+        <p class="fp-details-note" id="fp-details-note" hidden></p>
+        <div class="fp-details-body">
+          <div class="fp-soon fp-soon--photo" aria-hidden="true">
+            <svg viewBox="0 0 48 36"><rect x="3" y="5" width="42" height="28" rx="3"/><circle cx="16" cy="15" r="4"/><path d="m3 29 13-10 9 7 7-5 13 9"/></svg>
+            <span>Photos</span>
+          </div>
+          <div class="fp-soon">
+            <h3>Room details coming soon</h3>
+            <p>Photos, seating, outlets, noise level and opening hours for this room will show up here.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/site.js"></script>
+  <script src="js/floor.js"></script>
+</body>
+</html>

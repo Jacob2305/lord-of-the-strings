@@ -1,6 +1,6 @@
 /* ==========================================================
    BeaverSpot shared script (every page loads this first).
-   - draws the site header, breadcrumb and footer
+   - draws the site header and breadcrumb
    - loads data/buildings.json and the floor files it points to
    - photo(): an <img> that turns into a designed placeholder if the file is missing
    Everything is exposed on window.BeaverSite.
@@ -65,7 +65,7 @@
     return roomsPromise;
   }
 
-  /* ---------------- header / breadcrumb / footer ---------------- */
+  /* ---------------- header / breadcrumb ---------------- */
   function renderChrome() {
     const page = document.body.getAttribute("data-page") || "";
     const main = document.querySelector("main");
@@ -86,18 +86,6 @@
           link("index.html", "Home", page === "home"),
           link("index.html#buildings", "Buildings", false),
         ])]),
-      ]));
-    }
-
-    const footer = document.getElementById("site-footer");
-    if (footer) {
-      footer.className = "site-footer";
-      footer.replaceChildren(h("div", { class: "site-footer__inner wrap" }, [
-        h("p", {}, [
-          h("strong", { text: "BeaverSpot" }),
-          document.createTextNode("A student project for a web design course at the City College of New York. " +
-            "Not an official CCNY site; room details may be out of date."),
-        ]),
       ]));
     }
 

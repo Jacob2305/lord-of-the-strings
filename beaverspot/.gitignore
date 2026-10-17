@@ -1,0 +1,6 @@
+# Dev-only material: kept on disk, never committed.
+# tools/ has the scripts that build data/floor-6.json from the sign photos,
+# plus the page tests and their generated output.
+tools/
+images/source/6FL*.jpg
+__pycache__/

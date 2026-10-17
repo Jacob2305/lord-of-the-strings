@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building | BeaverSpot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500..700;1,6..72,500..600&family=Public+Sans:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/building.css" />
+</head>
+<body data-page="building">
+  <header id="site-header"><a href="index.html">BeaverSpot</a></header>
+  <nav id="crumbs"></nav>
+
+  <!-- js/building.js fills this from data/buildings.json using ?building=<id> -->
+  <main id="main" aria-busy="true">
+    <p class="wrap loading">Loading building&hellip;</p>
+  </main>
+
+  <script src="js/site.js"></script>
+  <script src="js/building.js"></script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+/* ==========================================================
+   Floor plan page (floor.html). Colors come from css/site.css
+   (--brand, --accent, --bg ...); the plan-specific ones are below.
+   Flat SVG look: one neutral fill for rooms, gray for building core.
+   ========================================================== */
+:root {
+  --fp-hall: #ececf1;          /* floor / corridors */
+  --fp-wall: #4a4256;          /* room outlines */
+  --fp-room: #ffffff;          /* every room, same fill (no types yet) */
+  --fp-room-hover: #f1eaf9;
+  --fp-room-sel: #fdf0dc;
+  --fp-core: #d9d9de;          /* stairs, elevators, escalators, restrooms */
+  --fp-closet: #e5e4ea;
+  --fp-void: #b9b4c2;
+  --fp-label: #1f1b24;
+  --fp-label-muted: #5c556a;
+}
+
+/* full-height app: header, breadcrumb, then the map + sidebar fill the rest */
+body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.fp-skip {
+  position: absolute; left: 0.5rem; top: -3rem; z-index: 50;
+  background: var(--card); color: var(--brand); padding: 0.5rem 0.75rem;
+  border-radius: 6px; font-weight: 600;
+}
+.fp-skip:focus { top: 0.5rem; }
+
+/* ---------- layout: room panel | stage (map, then details once a room is picked) ---------- */
+.fp-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+.fp-stage {
+  min-width: 0; min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+/* a room is picked: map on top, details below (about 55 / 45) */
+.fp-stage.has-room {
+  grid-template-rows: minmax(0, 55fr) minmax(0, 45fr);
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #ebe7f1;
+}
+.fp-stage.has-room .fp-map { border-radius: var(--radius); border: 1px solid var(--border); }
+
+.fp-map {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+  touch-action: none;           /* we handle pinch / pan ourselves */
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+}
+.fp-map.is-dragging { cursor: grabbing; }
+
+.fp-svg { display: block; width: 100%; height: 100%; }
+
+/* ---------- plan drawing ---------- */
+.fp-svg path,
+.fp-svg rect.fp-sel-ring { vector-effect: non-scaling-stroke; }
+
+.fp-floor path { fill: var(--fp-hall); stroke: var(--fp-wall); stroke-width: 1.6; stroke-linejoin: round; }
+
+.fp-space path { stroke: var(--fp-wall); stroke-width: 0.8; stroke-linejoin: round; }
+.fp-space.t-core path,
+.fp-space.t-restroom path { fill: var(--fp-core); }
+.fp-space.t-closet path { fill: var(--fp-closet); stroke: #a7a1b2; stroke-width: 0.6; }
+.fp-space.t-void path { fill: url(#fp-hatch); stroke: var(--fp-void); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.fp-room { cursor: pointer; outline: none; }
+.fp-room path {
+  fill: var(--fp-room);
+  stroke: var(--fp-wall);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  transition: fill 0.12s;
+}
+.fp-room:hover path { fill: var(--fp-room-hover); }
+.fp-room.is-selected path { fill: var(--fp-room-sel); }
+
+/* selection and keyboard focus are drawn on a top layer (a copy of the room's
+   shapes) so the outline is never hidden under a neighbour's wall */
+.fp-top path { fill: none; pointer-events: none; stroke-linejoin: round; }
+.fp-top .fp-sel path { stroke: var(--accent); stroke-width: 3.5; }
+.fp-top .fp-focus path { stroke: var(--brand); stroke-width: 3; stroke-dasharray: 6 3; }
+
+/* labels: font-size is set in map units by floor.js so it stays the same on screen */
+.fp-labels { pointer-events: none; }
+.fp-labels text {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--fp-label);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 0.12em;
+  stroke-linejoin: round;
+}
+.fp-labels text.is-minor { fill: var(--fp-label-muted); font-weight: 500; stroke: none; }
+.fp-labels text[hidden] { display: none; }
+
+/* ---------- zoom buttons ---------- */
+.fp-zoom {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  display: flex; flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(31, 27, 36, 0.12);
+  overflow: hidden;
+}
+.fp-zoom button {
+  width: 38px; height: 38px;
+  border: 0; background: transparent; color: var(--text);
+  font-size: 1.35rem; line-height: 1; cursor: pointer;
+  display: grid; place-items: center;
+}
+.fp-zoom button + button { border-top: 1px solid var(--border); }
+.fp-zoom button:hover { background: #f1eaf9; color: var(--brand); }
+.fp-zoom svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+/* ---------- room details (under the map) ---------- */
+.fp-details {
+  position: relative;
+  min-height: 0; overflow-y: auto;
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
+  padding: clamp(1rem, 2.5vw, 1.5rem) clamp(1rem, 3vw, 2rem);
+}
+.fp-details[hidden] { display: none; }
+.fp-details-where {
+  margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+}
+.fp-details h2 { margin: 0.15rem 0 0; font-size: clamp(1.6rem, 3vw, 2.2rem); color: var(--brand-dark); outline: none; }
+.fp-details-note { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+.fp-details-note[hidden] { display: none; }
+.fp-details-body {
+  margin-top: 1rem;
+  display: grid; gap: 1rem 1.5rem;
+  grid-template-columns: minmax(160px, 280px) minmax(0, 1fr);
+  align-items: start;
+}
+.fp-soon--photo {
+  aspect-ratio: 4 / 3;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 12px, rgba(91, 42, 134, 0.05) 12px 13px),
+    #f1edf6;
+  border: 1px dashed #c9c1d6;
+  color: #6f6880; font-size: 0.85rem;
+}
+.fp-soon--photo svg { width: 56px; height: 42px; fill: none; stroke: #9a8fab; stroke-width: 1.6; stroke-linejoin: round; }
+.fp-soon h3 { margin: 0.2rem 0 0.4rem; font-size: 1.2rem; }
+.fp-soon p { margin: 0; color: var(--muted); max-width: 46ch; }
+.fp-details-close {
+  position: absolute; top: 0.6rem; right: 0.6rem;
+  width: 36px; height: 36px; border: 0; border-radius: 50%;
+  background: transparent; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--muted);
+}
+.fp-details-close:hover { background: var(--bg); color: var(--text); }
+
+/* ---------- legend + status ---------- */
+.fp-legend {
+  position: absolute; left: 0.75rem; bottom: 0.6rem;
+  display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem;
+  margin: 0; padding: 0.3rem 0.6rem; list-style: none;
+  font-size: 0.75rem; color: var(--muted);
+  background: rgba(255, 255, 255, 0.85); border-radius: 6px;
+  pointer-events: none;
+}
+.fp-legend li { display: inline-flex; align-items: center; gap: 0.3rem; }
+.fp-legend i { width: 12px; height: 12px; border-radius: 2px; border: 1px solid var(--fp-wall); display: inline-block; }
+.fp-legend .sw-room { background: var(--fp-room); }
+.fp-legend .sw-core,
+.fp-legend .sw-restroom { background: var(--fp-core); }
+.fp-legend .sw-restroom { border-style: dotted; }
+.fp-legend .sw-closet { background: var(--fp-closet); border-color: #a7a1b2; }
+.fp-legend .sw-void {
+  border: 1px dashed var(--fp-void);
+  background: repeating-linear-gradient(45deg, transparent 0 3px, var(--fp-void) 3px 4px);
+}
+.fp-status {
+  position: absolute; top: 0.75rem; left: 0.75rem; margin: 0;
+  font-size: 0.85rem; color: var(--muted);
+}
+.fp-status:empty { display: none; }
+
+/* ---------- left room panel ---------- */
+.fp-side {
+  display: flex; flex-direction: column;
+  min-height: 0;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 1rem;
+}
+.fp-title { margin: 0 0 0.75rem; font-size: 1.15rem; color: var(--brand-dark); }
+.fp-pick-title { margin: 0 0 0.5rem; font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; color: var(--muted); outline: none; }
+.fp-count { margin: 0.6rem 0 0.4rem; font-size: 0.8rem; color: var(--muted); }
+
+/* step 1: which hundred (6100s / 6200s / 6300s) */
+.fp-series {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 3px;
+}
+.fp-series button {
+  min-height: 40px; padding: 0.35rem 0.25rem;
+  font: inherit; font-size: 0.95rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  border: 0; border-radius: 7px; background: transparent; color: var(--text); cursor: pointer;
+}
+.fp-series button:hover { background: #ece4f6; color: var(--brand); }
+.fp-series button[aria-pressed="true"] { background: var(--brand); color: #fff; box-shadow: 0 1px 3px rgba(31, 27, 36, 0.25); }
+
+/* step 2: the last digits of every room in that hundred */
+.fp-list {
+  flex: 1; min-height: 0; overflow-y: auto;
+  list-style: none; margin: 0 -0.25rem; padding: 0.25rem;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  align-content: start; gap: 0.35rem;
+}
+.fp-list button {
+  width: 100%; min-height: 40px; padding: 0.4rem 0.2rem;
+  font: inherit; font-size: 1rem; font-weight: 500; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--card); color: var(--text); cursor: pointer;
+}
+.fp-list button:hover { border-color: var(--brand); color: var(--brand); }
+.fp-list button[aria-current="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+.fp-list li.is-wide { grid-column: span 2; }
+.fp-list .fp-range { font-size: 0.85rem; }
+
+
+/* visible focus ring for every control */
+.fp-zoom button:focus-visible,
+.fp-details-close:focus-visible,
+.fp-list button:focus-visible,
+.fp-series button:focus-visible,
+.topbar a:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- mobile: map (+ details) first, room panel below ---------- */
+@media (max-width: 760px) {
+  body { overflow: auto; height: auto; min-height: 100vh; }
+  .fp-layout { grid-template-columns: 1fr; }
+  .fp-stage { order: -1; grid-template-rows: 62vh; }
+  .fp-stage.has-room { grid-template-rows: 50vh auto; padding: 0.5rem; gap: 0.5rem; }
+  .fp-details { overflow: visible; }
+  .fp-details-body { grid-template-columns: 1fr; }
+  .fp-soon--photo { aspect-ratio: 16 / 7; }
+  .fp-side { border-right: 0; border-top: 1px solid var(--border); }
+  .fp-list { max-height: 45vh; }
+  .fp-legend { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fp-room path { transition: none; }
+}

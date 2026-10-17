@@ -1,5 +1,5 @@
 /* ==========================================================
-   BeaverSpot shared styles: tokens, header, breadcrumb, footer,
+   BeaverSpot shared styles: tokens, header, breadcrumb,
    buttons and photo placeholders.
    Used by index.html, building.html and floor.html.
    ========================================================== */
@@ -100,14 +100,6 @@ a { color: var(--brand); }
 .crumbs a { color: var(--brand); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
 .crumbs [aria-current="page"] { color: var(--muted); }
-
-/* ---------- footer ---------- */
-.site-footer { margin-top: clamp(3rem, 8vw, 6rem); background: var(--brand-ink); color: #e9e2f2; font-size: 0.9rem; }
-.site-footer__inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem 2rem; padding: 2rem 0; }
-.site-footer p { margin: 0; max-width: 60ch; }
-.site-footer a { color: #fff; }
-.site-footer strong { font-family: var(--font-display); font-size: 1.15rem; color: #fff; display: block; margin-bottom: 0.25rem; }
-.site-footer { --focus: var(--accent); }
 
 /* ---------- buttons / chips ---------- */
 .btn {
