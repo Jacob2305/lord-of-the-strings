@@ -1,0 +1,58 @@
+{
+  "campus": {
+    "name": "City College of New York",
+    "image": "images/source/ccny.jpg",
+    "focus": "55% 40%",
+    "alt": "Students crossing a tree-lined plaza on the City College campus, with the Gothic towers of Shepard Hall behind"
+  },
+  "buildings": [
+    {
+      "id": "nac",
+      "name": "North Academic Center",
+      "short": "NAC",
+      "status": "live",
+      "image": "images/source/nac.jpg",
+      "focus": "50% 45%",
+      "alt": "The North Academic Center, a long building with bands of windows, behind a busy brick plaza",
+      "floors": [
+        {
+          "floor": "6",
+          "label": "6th floor",
+          "status": "live",
+          "page": "floor.html?building=nac&floor=6",
+          "data": "data/floor-6.json"
+        }
+      ]
+    },
+    {
+      "id": "marshak",
+      "name": "Marshak",
+      "short": "Marshak",
+      "status": "soon",
+      "image": "images/source/marshak.jpg",
+      "focus": "62% 45%",
+      "alt": "The Marshak Science Building, a tall glass and concrete tower, behind autumn trees",
+      "floors": []
+    },
+    {
+      "id": "shepard",
+      "name": "Shepard",
+      "short": "Shepard",
+      "status": "soon",
+      "image": "images/source/shepherd.jpg",
+      "focus": "45% 40%",
+      "alt": "The Gothic stone towers of Shepard Hall against a clear blue sky",
+      "floors": []
+    },
+    {
+      "id": "wingate",
+      "name": "Wingate",
+      "short": "Wingate",
+      "status": "soon",
+      "image": "images/source/Wingate.jpg",
+      "focus": "50% 40%",
+      "alt": "The stone front and arched entrance of Wingate Hall, seen from a courtyard",
+      "floors": []
+    }
+  ]
+}

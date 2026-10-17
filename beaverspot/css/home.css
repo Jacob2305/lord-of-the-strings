@@ -1,0 +1,128 @@
+/* ==========================================================
+   Home page (index.html)
+   ========================================================== */
+
+/* ---------- hero ---------- */
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: clamp(420px, 62vh, 600px);
+  display: flex; align-items: flex-end;
+  color: #fff;
+  --focus: var(--accent);
+}
+.hero__photo { position: absolute; inset: 0; z-index: -2; }
+.hero__photo .photo { width: 100%; height: 100%; }
+/* dark purple tint, heavier at the bottom-left where the text sits */
+.hero::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(42, 19, 64, 0.88) 0%, rgba(42, 19, 64, 0.62) 55%, rgba(42, 19, 64, 0.35) 100%),
+    linear-gradient(0deg, rgba(42, 19, 64, 0.55) 0%, rgba(42, 19, 64, 0) 60%);
+}
+.hero .photo.is-missing .photo__ph { justify-content: flex-start; align-items: flex-end; padding: 1rem 1.5rem; text-align: right; }
+.hero .photo.is-missing .photo__ph svg { display: none; }
+.hero .photo.is-missing .photo__ph span,
+.hero .photo.is-missing .photo__ph code { position: relative; z-index: 1; color: #fff; background: rgba(42, 19, 64, 0.6); }
+
+.hero__content { padding-block: clamp(3rem, 9vw, 5.5rem) clamp(2.5rem, 6vw, 4rem); }
+.hero__eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+}
+.hero__eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--accent); }
+.hero h1 { margin: 0; font-size: clamp(2.3rem, 6vw, 4.2rem); font-weight: 600; max-width: 14ch; }
+.hero__sub { margin: 0.5rem 0 1.75rem; font-family: var(--font-display); font-style: italic; font-size: clamp(1.15rem, 2.4vw, 1.5rem); color: #f1eaf9; }
+
+/* ---------- section heads ---------- */
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 2rem; margin-bottom: 1.5rem; }
+.section-head h2 { margin: 0; font-size: clamp(1.7rem, 3.5vw, 2.3rem); }
+.section-head p { margin: 0; color: var(--muted); }
+
+/* ---------- building tiles ---------- */
+.buildings { padding-top: clamp(2.5rem, 7vw, 4.5rem); }
+.tiles {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: clamp(1rem, 2vw, 1.5rem);
+  grid-template-columns: 1fr;
+}
+@media (min-width: 600px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .tiles { grid-template-columns: repeat(4, 1fr); } }
+
+.tile {
+  position: relative; display: block; overflow: hidden;
+  border-radius: var(--radius); background: var(--card);
+  color: #fff; text-decoration: none;
+  box-shadow: 0 1px 2px rgba(31, 27, 36, 0.08), 0 4px 14px rgba(31, 27, 36, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.tile__photo { aspect-ratio: 3 / 4; }
+@media (min-width: 600px) and (max-width: 1023px) { .tile__photo { aspect-ratio: 4 / 3; } }
+@media (max-width: 599px) { .tile__photo { aspect-ratio: 3 / 2; } }
+.tile__photo img { transition: transform 0.5s ease; }
+
+.tile .chip { position: absolute; top: 0.75rem; left: 0.75rem; }
+
+.tile__caption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 3.5rem 1rem 1rem;
+  background: linear-gradient(0deg, rgba(31, 17, 46, 0.92) 0%, rgba(31, 17, 46, 0.7) 45%, rgba(31, 17, 46, 0) 100%);
+  transform: translateY(1.6rem);
+  transition: transform 0.3s ease;
+}
+.tile__name { margin: 0; font-size: 1.35rem; color: #fff; }
+.tile__meta { margin: 0.2rem 0 0; font-size: 0.88rem; color: #efe7f8; opacity: 0; transition: opacity 0.3s ease; }
+
+/* live tile: lift, zoom the photo a touch, slide the caption up */
+.tile--live:hover,
+.tile--live:focus-visible { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(31, 27, 36, 0.18); }
+.tile--live:hover .tile__photo img,
+.tile--live:focus-visible .tile__photo img { transform: scale(1.04); }
+.tile--live:hover .tile__caption,
+.tile--live:focus-visible .tile__caption { transform: translateY(0); }
+.tile--live:hover .tile__meta,
+.tile--live:focus-visible .tile__meta { opacity: 1; }
+.tile--live:focus-visible { outline-offset: 3px; }
+/* on touch screens there is no hover, so show the caption in full */
+@media (hover: none) {
+  .tile__caption { transform: none; }
+  .tile__meta { opacity: 1; }
+}
+
+/* coming-soon tile: dimmed, no lift, caption always shown */
+.tile--soon { cursor: default; }
+.tile--soon .tile__photo img { filter: grayscale(0.85) brightness(0.8); opacity: 0.75; }
+.tile--soon .tile__photo .photo__ph { opacity: 0.7; }
+.tile--soon .tile__caption { transform: none; }
+.tile--soon .tile__meta { opacity: 1; color: #e2dbea; }
+
+.tiles__error { color: var(--muted); }
+
+/* ---------- how it works ---------- */
+.how { margin-top: clamp(3rem, 8vw, 5rem); padding-block: clamp(2.5rem, 6vw, 4rem); background: var(--card); border-block: 1px solid var(--border); }
+.how h2 { margin: 0 0 1.75rem; font-size: clamp(1.7rem, 3.5vw, 2.3rem); }
+.steps {
+  list-style: none; margin: 0; padding: 0; counter-reset: step;
+  display: grid; gap: 1.5rem 2.5rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.steps li { counter-increment: step; position: relative; padding-top: 3.4rem; }
+.steps li::before {
+  content: counter(step);
+  position: absolute; top: 0; left: 0;
+  font-family: var(--font-display); font-size: 2.6rem; font-weight: 600; line-height: 1;
+  color: var(--brand);
+}
+.steps li::after { content: ""; position: absolute; left: 0; width: 36px; height: 3px; background: var(--accent); top: 2.85rem; }
+.steps h3 { margin: 0 0 0.35rem; font-size: 1.3rem; }
+.steps p { margin: 0; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tile, .tile__caption, .tile__photo img, .tile__meta { transition: none; }
+  .tile--live:hover, .tile--live:focus-visible { transform: none; }
+  .tile--live:hover .tile__photo img, .tile--live:focus-visible .tile__photo img { transform: none; }
+}
+
+/* "How it works" already ends the page with a full-width band */
+.how { border-bottom: 0; }
+.site-footer { margin-top: 0; }

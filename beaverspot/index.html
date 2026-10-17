@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BeaverSpot | Find your way around City College</title>
+  <meta name="description" content="Find a room or a building on the City College of New York campus." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500..700;1,6..72,500..600&family=Public+Sans:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/home.css" />
+</head>
+<body data-page="home">
+  <header id="site-header"><a href="index.html">BeaverSpot</a></header>
+
+  <main id="main">
+    <!-- Hero: photo, text and a jump to the buildings. The photo comes from data/buildings.json ("campus"). -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__photo" id="hero-photo"></div>
+      <div class="hero__content wrap">
+        <p class="hero__eyebrow" id="campus-name">City College of New York</p>
+        <h1 id="hero-title">Welcome to BeaverSpot</h1>
+        <p class="hero__sub">Where is your next destination?</p>
+        <a class="btn btn--light" href="#buildings">Choose a building</a>
+      </div>
+    </section>
+
+    <section class="buildings wrap" id="buildings" aria-labelledby="buildings-title">
+      <div class="section-head">
+        <h2 id="buildings-title">Buildings</h2>
+        <p>Start with a building. More of campus is on the way.</p>
+      </div>
+      <ul class="tiles" id="tiles"></ul>
+    </section>
+
+    <section class="how" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <h2 id="how-title">How it works</h2>
+        <ol class="steps">
+          <li><h3>Pick a building</h3><p>Choose one of the open buildings above.</p></li>
+          <li><h3>Pick a floor</h3><p>Each building lists the floors that have a map so far.</p></li>
+          <li><h3>Find your room</h3><p>Tap the room number in the list, or zoom around the floor plan to find it.</p></li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/site.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>
