@@ -13,6 +13,7 @@
 
   const CONFIG = {
     dataUrl: "data/floor-6.json",
+    amenitiesUrl: "data/amenities-6.json",
     labelPx: 13,          // room numbers, constant size on screen
     minorPx: 11,          // "Stair", "Men" ... labels
     labelPad: 3,          // px of air between a label and the walls around it
@@ -31,6 +32,9 @@
 
   let data = null;
   let rooms = [];               // every entry in the JSON, with parsed geometry
+  let amenities = {};           // room id -> amenities, from data/amenities-6.json (+ edits made on the page)
+  let amenitiesFromFile = {};   // the file as loaded, never edited
+  const editedRooms = new Set();  // rooms changed with "Update amenities" since the page loaded
   const byId = new Map();
   let selected = null;
   let bounds = null;            // floor bounding box in map units
@@ -139,21 +143,42 @@
       .then((res) => (res.ok ? res.json() : null))
       .catch(() => null)
       .then((site) => {
-        if (!site) return CONFIG.dataUrl;            // no building list: fall back to the one floor we have
+        // no building list: fall back to the one floor we have
+        if (!site) return { data: CONFIG.dataUrl, amenities: CONFIG.amenitiesUrl };
         const b = site.buildings.find((x) => x.id === want.building);
         const f = b && b.status === "live" &&
           (b.floors || []).find((x) => x.floor === want.floor && x.status === "live" && x.data);
         if (!f) { const e = new Error("not mapped"); e.notMapped = true; throw e; }
-        return f.data;
+        return f;
       });
+  }
+
+  // The amenities file is optional: if it is missing or broken the map still
+  // loads and every room just shows "no amenity info yet".
+  function loadAmenities(url) {
+    if (!url) return Promise.resolve({});
+    return fetch(url)
+      .then((res) => { if (!res.ok) throw new Error(res.status + " " + res.statusText); return res.json(); })
+      .then((json) => json.rooms || {})
+      .catch((err) => { console.warn("Could not load " + url + ": " + err.message); return {}; });
   }
 
   statusEl.textContent = "Loading floor plan…";
   let dataUrl = CONFIG.dataUrl;
   resolveDataUrl()
-    .then((url) => { dataUrl = url; return fetch(url); })
-    .then((res) => { if (!res.ok) throw new Error(res.status + " " + res.statusText); return res.json(); })
-    .then((json) => { statusEl.textContent = ""; init(json); openRoomFromUrl(); })
+    .then((f) => {
+      dataUrl = f.data;
+      const floor = fetch(f.data)
+        .then((res) => { if (!res.ok) throw new Error(res.status + " " + res.statusText); return res.json(); });
+      return Promise.all([floor, loadAmenities(f.amenities)]);
+    })
+    .then(([json, info]) => {
+      amenities = info;
+      amenitiesFromFile = JSON.parse(JSON.stringify(info));   // untouched copy for "Reset room"
+      statusEl.textContent = "";
+      init(json);
+      openRoomFromUrl();
+    })
     .catch((err) => {
       if (err.notMapped) {
         statusEl.replaceChildren("This floor is not mapped yet. ");
@@ -195,6 +220,8 @@
     buildSvg();
     prepareLabels();
     buildList();
+    buildFilters();
+    buildEditor();
     bindEvents();
 
     const ro = new ResizeObserver(() => onResize());
@@ -406,9 +433,12 @@
     const note = $("fp-details-note");
     note.textContent = notes.join(" ");
     note.hidden = !notes.length;
+    showAmenities(r);
+    loadEditor(r);
     showDetails(true);
 
-    if (seriesOf(r) !== series) showSeries(seriesOf(r));   // jump the picker to this room's hundred
+    // jump the picker to this room's hundred (while filtering, the list shows matches instead)
+    if (!activeFilters.size && seriesOf(r) !== series) showSeries(seriesOf(r));
     listButtons.forEach((b, id) => b.setAttribute("aria-current", id === r.id ? "true" : "false"));
     const b = listButtons.get(r.id);
     if (b && b.offsetParent) b.scrollIntoView({ block: "nearest" });
@@ -434,6 +464,225 @@
     $("fp-details").hidden = !open;
     stage.classList.toggle("has-room", open);
     onResize();
+  }
+
+  /* ---------------- room amenities ---------------- */
+  // Checked-in-person amenities from the amenities file (see its _readme for the
+  // fields). Fields left out of a room's entry show as "Not checked"; a value
+  // outside the allowed list shows as-is and logs a warning so typos get noticed.
+  const LEVELS = {
+    outlets: { none: "None", few: "A few", some: "Some", many: "Many", "every-seat": "At every seat" },
+    wifi: { none: "None", weak: "Weak", ok: "OK", good: "Good", excellent: "Excellent" },
+    noise: { silent: "Silent", quiet: "Quiet", moderate: "Moderate", loud: "Loud" },
+  };
+  const yesNo = (v) => (v === true ? "Yes" : v === false ? "No" : null);
+  const AMENITY_FIELDS = [
+    { key: "capacity",     label: "Seats",         show: (v) => (Number.isInteger(v) && v >= 0 ? String(v) : null) },
+    { key: "outlets",      label: "Outlets",       show: (v) => LEVELS.outlets[v] || null },
+    { key: "microwave",    label: "Microwave",     show: yesNo },
+    { key: "wifi",         label: "Wi-Fi",         show: (v) => LEVELS.wifi[v] || null },
+    { key: "noise",        label: "Noise",         show: (v) => LEVELS.noise[v] || null },
+    { key: "naturalLight", label: "Natural light", show: yesNo },
+    { key: "hours",        label: "Hours",         show: (v) => (typeof v === "string" && v.trim()) || null },
+  ];
+
+  function showAmenities(r) {
+    const info = amenities[r.id];
+    const list = $("fp-amenities-list");
+    const extra = $("fp-amenities-extra");
+    list.replaceChildren();
+    list.hidden = !info;
+    $("fp-amenities-empty").hidden = !!info;
+    extra.hidden = true;
+    if (!info) return;
+
+    AMENITY_FIELDS.forEach((f) => {
+      const v = info[f.key];
+      const given = v !== undefined && v !== null;
+      let text = given ? f.show(v) : null;
+      if (given && text === null) {
+        console.warn("amenities: room " + r.id + " has an unexpected " + f.key + ":", v);
+        text = String(v);
+      }
+      const row = document.createElement("div");
+      if (text === null) row.className = "is-unknown";
+      const dt = document.createElement("dt");
+      const dd = document.createElement("dd");
+      dt.textContent = f.label;
+      dd.textContent = text === null ? "Not checked" : text;
+      row.append(dt, dd);
+      list.appendChild(row);
+    });
+
+    const bits = [];
+    if (info.notes) bits.push(info.notes);
+    if (info.checked) bits.push("Checked " + info.checked + ".");
+    if (editedRooms.has(r.id)) bits.push("Edited on this page (not saved).");
+    extra.textContent = bits.join(" ");
+    extra.hidden = !bits.length;
+  }
+
+  /* ---------------- amenity editor (front end only) ---------------- */
+  // "Update amenities" under the amenity boxes: one control per field in
+  // AMENITY_FIELDS. Every change goes straight into `amenities`, so the boxes
+  // and the map filters update at once. Nothing is saved: reloading the page
+  // brings back data/amenities-6.json. Each control starts at "Not checked"
+  // when the room has no value for it; clearing a control removes the value.
+  const EDIT_KIND = {
+    capacity: "number", outlets: "level", microwave: "yesno", wifi: "level",
+    noise: "level", naturalLight: "yesno", hours: "text",
+  };
+  const MSG_UNSAVED = "Changes show right away but aren't saved: reloading the page resets them.";
+  const editors = new Map();      // field key -> { show(value) } that puts a value into its control
+
+  function setAmenity(key, value) {
+    if (!selected) return;
+    const r = selected;
+    const info = amenities[r.id] || (amenities[r.id] = {});
+    if (value === null) delete info[key];
+    else info[key] = value;
+    if (!Object.keys(info).length) delete amenities[r.id];
+    editedRooms.add(r.id);
+    showAmenities(r);
+    if (activeFilters.size) applyFilters();
+    $("fp-edit-reset").hidden = false;
+    $("fp-edit-status").textContent = MSG_UNSAVED;
+  }
+
+  function editRow(f) {
+    const row = document.createElement("div");
+    row.className = "fp-edit-row fp-edit-" + EDIT_KIND[f.key];
+    const id = "fp-edit-" + f.key;
+    const label = document.createElement(EDIT_KIND[f.key] === "yesno" ? "span" : "label");
+    label.className = "fp-edit-label";
+    label.id = id + "-label";
+    label.textContent = f.label;
+    if (label.tagName === "LABEL") label.htmlFor = id;
+    row.appendChild(label);
+    return { row, id, label };
+  }
+
+  // 1..n slider over the field's allowed values, e.g. noise: silent .. loud
+  function levelEditor(f) {
+    const { row, id } = editRow(f);
+    const keys = Object.keys(LEVELS[f.key]);
+    const names = keys.map((k) => LEVELS[f.key][k]);
+    const out = document.createElement("output");
+    out.htmlFor = id;
+    const input = document.createElement("input");
+    Object.assign(input, { type: "range", id, min: 0, max: keys.length - 1, step: 1 });
+    const ends = document.createElement("span");
+    ends.className = "fp-edit-ends";
+    ends.setAttribute("aria-hidden", "true");
+    ends.innerHTML = "<span></span><span></span>";
+    ends.firstChild.textContent = names[0];
+    ends.lastChild.textContent = names[names.length - 1];
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "fp-edit-clear";
+    clear.textContent = "Not checked";
+    clear.setAttribute("aria-label", f.label + ": set to not checked");
+    row.append(out, input, ends, clear);
+
+    function show(v) {
+      const i = keys.indexOf(v);
+      const set = i >= 0;
+      input.value = set ? i : Math.floor((keys.length - 1) / 2);
+      input.dataset.set = set ? "true" : "false";
+      input.style.setProperty("--fill", set ? (i / (keys.length - 1)) * 100 + "%" : "0%");
+      out.textContent = set ? names[i] : "Not checked";
+      input.setAttribute("aria-valuetext", set ? names[i] : "Not checked");
+      clear.hidden = !set;
+    }
+    // "input" fires while dragging and on arrow keys; a click on the thumb of an
+    // unset slider fires nothing, so pointerup/Enter also count as setting it
+    const commit = () => { const v = keys[Number(input.value)]; show(v); setAmenity(f.key, v); };
+    input.addEventListener("input", commit);
+    input.addEventListener("pointerup", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } });
+    clear.addEventListener("click", () => { show(null); setAmenity(f.key, null); input.focus(); });
+    return { row, show };
+  }
+
+  // Yes / No pair; pressing the pressed one again goes back to "Not checked"
+  function yesNoEditor(f) {
+    const { row, label } = editRow(f);
+    const group = document.createElement("div");
+    group.className = "fp-edit-pair";
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-labelledby", label.id);
+    const buttons = [true, false].map((val) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = val ? "Yes" : "No";
+      b.addEventListener("click", () => {
+        const v = b.getAttribute("aria-pressed") === "true" ? null : val;
+        show(v);
+        setAmenity(f.key, v);
+      });
+      group.appendChild(b);
+      return b;
+    });
+    row.appendChild(group);
+    function show(v) {
+      buttons[0].setAttribute("aria-pressed", v === true ? "true" : "false");
+      buttons[1].setAttribute("aria-pressed", v === false ? "true" : "false");
+    }
+    return { row, show };
+  }
+
+  function inputEditor(f, type) {
+    const { row, id } = editRow(f);
+    const input = document.createElement("input");
+    input.id = id;
+    input.type = type;
+    input.placeholder = "Not checked";
+    if (type === "number") Object.assign(input, { min: 0, max: 999, step: 1, inputMode: "numeric" });
+    else input.maxLength = 60;
+    row.appendChild(input);
+    input.addEventListener("input", () => {
+      if (type === "number") {
+        const n = parseInt(input.value, 10);
+        setAmenity(f.key, Number.isInteger(n) && n >= 0 ? n : null);
+      } else {
+        setAmenity(f.key, input.value.trim() || null);
+      }
+    });
+    const show = (v) => { input.value = v === undefined || v === null ? "" : v; };
+    return { row, show };
+  }
+
+  function buildEditor() {
+    const rows = $("fp-edit-rows");
+    rows.replaceChildren();
+    AMENITY_FIELDS.forEach((f) => {
+      const kind = EDIT_KIND[f.key];
+      const ed = kind === "level" ? levelEditor(f)
+        : kind === "yesno" ? yesNoEditor(f)
+        : inputEditor(f, kind === "number" ? "number" : "text");
+      rows.appendChild(ed.row);
+      editors.set(f.key, ed);
+    });
+    $("fp-edit-form").addEventListener("submit", (e) => e.preventDefault());
+    $("fp-edit-reset").addEventListener("click", () => {
+      if (!selected) return;
+      const r = selected;
+      const orig = amenitiesFromFile[r.id];
+      if (orig) amenities[r.id] = JSON.parse(JSON.stringify(orig));
+      else delete amenities[r.id];
+      editedRooms.delete(r.id);
+      showAmenities(r);
+      loadEditor(r);
+      if (activeFilters.size) applyFilters();
+      $("fp-edit-status").textContent = "Room reset to the saved data.";
+    });
+  }
+
+  function loadEditor(r) {
+    const info = amenities[r.id] || {};
+    editors.forEach((ed, key) => ed.show(info[key]));
+    $("fp-edit-reset").hidden = !editedRooms.has(r.id);
+    $("fp-edit-status").textContent = editedRooms.has(r.id) ? MSG_UNSAVED : "Changes are not saved.";
   }
 
   /* ---------------- sidebar room picker ---------------- */
@@ -488,6 +737,77 @@
     }));
 
     showSeries([...groups.keys()].sort()[0]);
+  }
+
+  /* ---------------- amenity filters ---------------- */
+  // Toggle buttons above the picker. With any on, rooms matching all of them
+  // are highlighted on the map (the rest fade) and the list shows just those
+  // rooms, by full number since they can come from different hundreds. A room
+  // with no amenity info, or without the field a filter needs, never matches.
+  const FILTERS = [
+    { key: "quiet",     label: "Quiet",         test: (a) => a.noise === "silent" || a.noise === "quiet" },
+    { key: "outlets",   label: "Outlets",       test: (a) => ["some", "many", "every-seat"].includes(a.outlets) },
+    { key: "wifi",      label: "Good Wi-Fi",    test: (a) => a.wifi === "good" || a.wifi === "excellent" },
+    { key: "light",     label: "Natural light", test: (a) => a.naturalLight === true },
+    { key: "microwave", label: "Microwave",     test: (a) => a.microwave === true },
+    { key: "group",     label: "6+ seats",      test: (a) => Number.isInteger(a.capacity) && a.capacity >= 6 },
+  ];
+  const activeFilters = new Set();
+
+  function matchesFilters(r) {
+    const a = amenities[r.id];
+    return !!a && FILTERS.every((f) => !activeFilters.has(f.key) || f.test(a));
+  }
+
+  function buildFilters() {
+    const row = $("fp-filters");
+    row.replaceChildren();
+    FILTERS.forEach((f) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = f.label;
+      b.setAttribute("aria-pressed", "false");
+      b.addEventListener("click", () => {
+        if (activeFilters.has(f.key)) activeFilters.delete(f.key);
+        else activeFilters.add(f.key);
+        b.setAttribute("aria-pressed", activeFilters.has(f.key) ? "true" : "false");
+        applyFilters();
+      });
+      row.appendChild(b);
+    });
+    $("fp-filter-clear").addEventListener("click", () => {
+      activeFilters.clear();
+      row.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", "false"));
+      applyFilters();
+      row.querySelector("button").focus();
+    });
+  }
+
+  function applyFilters() {
+    const on = activeFilters.size > 0;
+    map.classList.toggle("is-filtering", on);
+    $("fp-legend-match").hidden = !on;
+    $("fp-filter-clear").hidden = !on;
+    $("fp-series").hidden = on;
+
+    let n = 0;
+    rooms.forEach((r) => {
+      if (!r.clickable) return;
+      const m = on && matchesFilters(r);
+      r.g.classList.toggle("is-match", m);
+      if (r.text) r.text.classList.toggle("is-faded", on && !m);
+      listButtons.get(r.id).textContent = on ? r.id.replace("-", "–") : shortName(r);
+      if (on) r.li.hidden = !m;
+      if (m) n++;
+    });
+
+    if (!on) { showSeries(series); return; }
+    let text = n + (n === 1 ? " room matches" : " rooms match");
+    if (!n) text += Object.keys(amenities).length
+      ? ". Try turning a filter off."
+      : ". No rooms have amenity info yet.";
+    $("fp-count").textContent = text;
+    $("fp-list").scrollTop = 0;
   }
 
   function showSeries(k) {

@@ -1,0 +1,33 @@
+{
+  "building": "NAC",
+  "floor": "6",
+  "_readme": [
+    "Amenities and attributes of each room, entered by hand after checking the room in person.",
+    "Key = room number exactly as on the floor plan (e.g. \"6313\", \"6207A\").",
+    "Every field is optional: leave out what you haven't checked and the page shows 'Not checked'.",
+    "capacity: number of seats.",
+    "outlets: \"none\" | \"few\" | \"some\" | \"many\" | \"every-seat\".",
+    "microwave: true if there is a microwave in the room, else false.",
+    "wifi: \"none\" | \"weak\" | \"ok\" | \"good\" | \"excellent\".",
+    "noise: \"silent\" | \"quiet\" | \"moderate\" | \"loud\".",
+    "naturalLight: true if the room has windows to the outside, else false.",
+    "hours: free text, e.g. \"Mon–Fri 8am–10pm\".",
+    "notes: free text, one short sentence.",
+    "checked: date you checked the room, \"YYYY-MM-DD\".",
+    "Copy the shape of _example into rooms; _example itself is ignored."
+  ],
+  "_example": {
+    "6313": {
+      "capacity": 30,
+      "outlets": "some",
+      "microwave": false,
+      "wifi": "good",
+      "noise": "quiet",
+      "naturalLight": true,
+      "hours": "Mon–Fri 8am–10pm",
+      "notes": "Classroom; open for study when no class is scheduled.",
+      "checked": "2026-10-17"
+    }
+  },
+  "rooms": {}
+}

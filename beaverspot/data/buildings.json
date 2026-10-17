@@ -20,7 +20,8 @@
           "label": "6th floor",
           "status": "live",
           "page": "floor.html?building=nac&floor=6",
-          "data": "data/floor-6.json"
+          "data": "data/floor-6.json",
+          "amenities": "data/amenities-6.json"
         }
       ]
     },

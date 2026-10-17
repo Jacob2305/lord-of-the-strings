@@ -22,6 +22,13 @@
     <!-- ============ LEFT PANEL: room picker ============ -->
     <aside class="fp-side" aria-label="Rooms">
       <h1 id="fp-title" class="fp-title">Floor 6</h1>
+      <!-- amenity filters: built by js/floor.js (FILTERS) from data/amenities-6.json.
+           While any is on, the map highlights matching rooms and the list shows only them. -->
+      <div class="fp-filter-head">
+        <h2 class="fp-pick-title" id="fp-filter-title">Filter by amenity</h2>
+        <button type="button" class="fp-filter-clear" id="fp-filter-clear" hidden>Clear</button>
+      </div>
+      <div class="fp-filters" id="fp-filters" role="group" aria-labelledby="fp-filter-title"></div>
       <!-- room picker: first the series (6100s / 6200s / 6300s), then the last digits.
            Both rows are built by js/floor.js from the rooms in the floor's JSON. -->
       <h2 class="fp-pick-title" id="fp-rooms" tabindex="-1">Find a room</h2>
@@ -52,6 +59,7 @@
           <li><i class="sw-restroom"></i>Restroom</li>
           <li><i class="sw-closet"></i>Utility</li>
           <li><i class="sw-void"></i>Open shaft</li>
+          <li id="fp-legend-match" hidden><i class="sw-match"></i>Matches filters</li>
         </ul>
 
         <p class="fp-status" id="fp-status" role="status"></p>
@@ -68,10 +76,26 @@
             <svg viewBox="0 0 48 36"><rect x="3" y="5" width="42" height="28" rx="3"/><circle cx="16" cy="15" r="4"/><path d="m3 29 13-10 9 7 7-5 13 9"/></svg>
             <span>Photos</span>
           </div>
-          <div class="fp-soon">
-            <h3>Room details coming soon</h3>
-            <p>Photos, seating, outlets, noise level and opening hours for this room will show up here.</p>
-          </div>
+          <!-- amenities: filled by js/floor.js from data/amenities-6.json -->
+          <section class="fp-amenities" aria-labelledby="fp-amenities-title">
+            <h3 id="fp-amenities-title">Amenities</h3>
+            <dl class="fp-amenities-list" id="fp-amenities-list" hidden></dl>
+            <p class="fp-amenities-extra" id="fp-amenities-extra" hidden></p>
+            <p class="fp-amenities-empty" id="fp-amenities-empty">No amenity info for this room yet.</p>
+
+            <!-- editor: one control per amenity, built by js/floor.js (buildEditor).
+                 Front end only: changes update the page but are not saved anywhere. -->
+            <details class="fp-edit" id="fp-edit">
+              <summary>Update amenities</summary>
+              <form class="fp-edit-form" id="fp-edit-form" aria-label="Update amenities">
+                <div class="fp-edit-rows" id="fp-edit-rows"></div>
+                <div class="fp-edit-foot">
+                  <p class="fp-edit-note" id="fp-edit-status" aria-live="polite"></p>
+                  <button type="button" class="fp-edit-reset" id="fp-edit-reset">Reset room</button>
+                </div>
+              </form>
+            </details>
+          </section>
         </div>
       </section>
     </div>

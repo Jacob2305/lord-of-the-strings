@@ -9,6 +9,7 @@
   --fp-room: #ffffff;          /* every room, same fill (no types yet) */
   --fp-room-hover: #f1eaf9;
   --fp-room-sel: #fdf0dc;
+  --fp-room-match: #ddd0ef;    /* rooms matching the amenity filters */
   --fp-core: #d9d9de;          /* stairs, elevators, escalators, restrooms */
   --fp-closet: #e5e4ea;
   --fp-void: #b9b4c2;
@@ -85,6 +86,15 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 }
 .fp-room:hover path { fill: var(--fp-room-hover); }
 .fp-room.is-selected path { fill: var(--fp-room-sel); }
+
+/* amenity filters on: matching rooms tinted, the others faded (still clickable) */
+.fp-map.is-filtering .fp-room { opacity: 0.35; }
+.fp-map.is-filtering .fp-room.is-match,
+.fp-map.is-filtering .fp-room.is-selected { opacity: 1; }
+.fp-map.is-filtering .fp-room.is-match path { fill: var(--fp-room-match); stroke: var(--brand); stroke-width: 1.6; }
+.fp-map.is-filtering .fp-room.is-match:hover path { fill: #cdb8e8; }
+.fp-map.is-filtering .fp-room.is-match.is-selected path { fill: var(--fp-room-sel); }
+.fp-labels text.is-faded { opacity: 0.35; }
 
 /* selection and keyboard focus are drawn on a top layer (a copy of the room's
    shapes) so the outline is never hidden under a neighbour's wall */
@@ -164,6 +174,96 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 .fp-soon--photo svg { width: 56px; height: 42px; fill: none; stroke: #9a8fab; stroke-width: 1.6; stroke-linejoin: round; }
 .fp-soon h3 { margin: 0.2rem 0 0.4rem; font-size: 1.2rem; }
 .fp-soon p { margin: 0; color: var(--muted); max-width: 46ch; }
+
+/* ---------- amenities (from data/amenities-6.json) ---------- */
+.fp-amenities { min-width: 0; }
+.fp-amenities h3 { margin: 0.2rem 0 0.6rem; font-size: 1.2rem; }
+.fp-amenities-list {
+  margin: 0; display: grid; gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.fp-amenities-list[hidden] { display: none; }
+.fp-amenities-list div { padding: 0.45rem 0.65rem; border-radius: 8px; background: var(--bg); }
+.fp-amenities-list dt { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.fp-amenities-list dd { margin: 0.1rem 0 0; font-weight: 600; color: var(--text); }
+.fp-amenities-list .is-unknown dd { font-weight: 500; font-style: italic; color: var(--muted); }
+.fp-amenities-extra,
+.fp-amenities-empty { margin: 0.6rem 0 0; font-size: 0.9rem; color: var(--muted); }
+.fp-amenities-empty { margin-top: 0; }
+.fp-amenities-extra[hidden],
+.fp-amenities-empty[hidden] { display: none; }
+
+/* ---------- "Update amenities" editor (front end only) ---------- */
+.fp-edit { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.75rem; }
+.fp-edit summary {
+  cursor: pointer; width: fit-content; padding: 0.2rem 0.1rem;
+  font-weight: 600; color: var(--brand); border-radius: 5px;
+}
+.fp-edit summary:hover { text-decoration: underline; }
+.fp-edit-rows { display: grid; gap: 0.9rem; margin-top: 0.75rem; }
+.fp-edit-row { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 0.75rem; }
+.fp-edit-label { font-weight: 600; font-size: 0.95rem; }
+.fp-edit-row output { font-size: 0.9rem; font-weight: 600; color: var(--brand-dark); justify-self: end; }
+.fp-edit-row:has(input[data-set="false"]) output { color: var(--muted); font-weight: 500; font-style: italic; }
+.fp-edit-level input,
+.fp-edit-ends { grid-column: 1 / -1; }
+.fp-edit-ends { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.75rem; color: var(--muted); }
+.fp-edit-clear {
+  grid-column: 1 / -1; justify-self: start;
+  border: 0; background: none; padding: 0.1rem 0.2rem; margin-top: 0.1rem; border-radius: 5px;
+  font: inherit; font-size: 0.8rem; color: var(--brand); text-decoration: underline; cursor: pointer;
+}
+.fp-edit-clear[hidden] { display: none; }
+
+/* slider: track filled up to the thumb (--fill set by js/floor.js); grey until set */
+.fp-edit-level input {
+  --fill: 50%; --tint: var(--brand);
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 22px; margin: 0.2rem 0 0; background: none; cursor: pointer;
+}
+.fp-edit-level input::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 3px;
+  background: linear-gradient(to right, var(--tint) var(--fill), var(--border) var(--fill));
+}
+.fp-edit-level input::-moz-range-track { height: 6px; border-radius: 3px; background: var(--border); }
+.fp-edit-level input::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--tint); }
+.fp-edit-level input::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 20px; height: 20px; margin-top: -7px; border-radius: 50%;
+  background: var(--card); border: 3px solid var(--tint);
+}
+.fp-edit-level input::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--card); border: 3px solid var(--tint);
+}
+.fp-edit-level input[data-set="false"] { --tint: #b3abbf; }
+.fp-edit-level input[data-set="false"]::-moz-range-progress { background: none; }
+
+.fp-edit-pair { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; padding: 2px; gap: 2px; background: var(--bg); }
+.fp-edit-pair button {
+  min-width: 52px; min-height: 32px; border: 0; border-radius: 6px;
+  font: inherit; font-size: 0.9rem; font-weight: 600; background: transparent; color: var(--text); cursor: pointer;
+}
+.fp-edit-pair button:hover { color: var(--brand); }
+.fp-edit-pair button[aria-pressed="true"] { background: var(--brand); color: #fff; }
+
+.fp-edit-number input,
+.fp-edit-text input {
+  font: inherit; font-size: 0.95rem; padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text);
+}
+.fp-edit-number input { width: 6.5rem; }
+.fp-edit-text input { width: min(14rem, 100%); }
+.fp-edit-number input:focus,
+.fp-edit-text input:focus { border-color: var(--brand); }
+
+.fp-edit-foot { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: 0.9rem; }
+.fp-edit-note { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.fp-edit-reset {
+  flex: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.7rem;
+  font: inherit; font-size: 0.85rem; background: var(--card); color: var(--text); cursor: pointer;
+}
+.fp-edit-reset:hover { border-color: var(--brand); color: var(--brand); }
+.fp-edit-reset[hidden] { display: none; }
 .fp-details-close {
   position: absolute; top: 0.6rem; right: 0.6rem;
   width: 36px; height: 36px; border: 0; border-radius: 50%;
@@ -187,6 +287,8 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 .fp-legend .sw-restroom { background: var(--fp-core); }
 .fp-legend .sw-restroom { border-style: dotted; }
 .fp-legend .sw-closet { background: var(--fp-closet); border-color: #a7a1b2; }
+.fp-legend li[hidden] { display: none; }
+.fp-legend .sw-match { background: var(--fp-room-match); border-color: var(--brand); }
 .fp-legend .sw-void {
   border: 1px dashed var(--fp-void);
   background: repeating-linear-gradient(45deg, transparent 0 3px, var(--fp-void) 3px 4px);
@@ -208,6 +310,26 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 .fp-title { margin: 0 0 0.75rem; font-size: 1.15rem; color: var(--brand-dark); }
 .fp-pick-title { margin: 0 0 0.5rem; font-family: var(--font-body); font-size: 0.85rem; font-weight: 600; color: var(--muted); outline: none; }
 .fp-count { margin: 0.6rem 0 0.4rem; font-size: 0.8rem; color: var(--muted); }
+
+/* amenity filters: toggle chips above the picker */
+.fp-filter-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.fp-filter-clear {
+  border: 0; background: none; padding: 0.1rem 0.3rem; border-radius: 5px;
+  font: inherit; font-size: 0.8rem; color: var(--brand); text-decoration: underline; cursor: pointer;
+}
+.fp-filter-clear:hover { background: var(--bg); }
+.fp-filter-clear[hidden] { display: none; }
+.fp-filters { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1rem; }
+.fp-filters button {
+  min-height: 34px; padding: 0.3rem 0.7rem;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card); color: var(--text); cursor: pointer;
+}
+.fp-filters button:hover { border-color: var(--brand); color: var(--brand); }
+.fp-filters button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: #fff; }
+.fp-filters button[aria-pressed="true"]::before { content: "✓ "; }
+.fp-series[hidden] { display: none; }
 
 /* step 1: which hundred (6100s / 6200s / 6300s) */
 .fp-series {
@@ -246,6 +368,15 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 .fp-details-close:focus-visible,
 .fp-list button:focus-visible,
 .fp-series button:focus-visible,
+.fp-filters button:focus-visible,
+.fp-edit summary:focus-visible,
+.fp-edit-level input:focus-visible,
+.fp-edit-clear:focus-visible,
+.fp-edit-pair button:focus-visible,
+.fp-edit-number input:focus-visible,
+.fp-edit-text input:focus-visible,
+.fp-edit-reset:focus-visible,
+.fp-filter-clear:focus-visible,
 .topbar a:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
