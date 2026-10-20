@@ -438,6 +438,13 @@
     showAmenities(r);
     loadEditor(r);
     $("fp-directions-result").hidden = true;
+    $("fp-nav-room").textContent = "Room " + displayName(r);
+    
+    if (bounds) {
+      const x = (r.bbox.cx - bounds.x0) / bounds.w;
+      const side = x < 0.33 ? "Left" : x > 0.67 ? "Right" : "Center";
+      $("fp-nav-location").textContent = side + " side of floor map";
+    }
     showDetails(true);
 
     // jump the picker to this room's hundred (while filtering, the list shows matches instead)
@@ -888,69 +895,118 @@
 
   /* ---------------- Room Directions Feature ---------------- */
 
-  function setupDirections() {
-    const button = $("fp-get-directions");
-    const result = $("fp-directions-result");
-    const stepsList = $("fp-directions-steps");
-    const note = $("fp-directions-note");
+  
+function setupDirections() {
+  const button = $("fp-get-directions");
+  const result = $("fp-directions-result");
+  const stepsList = $("fp-directions-steps");
+  const note = $("fp-directions-note");
+  const progress = $("fp-directions-progress");
+  const elevatorBtn = $("fp-nav-elevator");
+  const stairsBtn = $("fp-nav-stairs");
+  const focusBtn = $("fp-nav-focus");
 
-    button.addEventListener("click", () => {
-      if (!selected) return;
+  let travelMode = "elevator";
 
-      const room = selected;
-      const roomNumber = displayName(room);
-      const floorNumber = data.floor;
+  function roomLocation(room) {
+    const x = (room.bbox.cx - bounds.x0) / bounds.w;
+    const y = (room.bbox.cy - bounds.y0) / bounds.h;
 
-      stepsList.replaceChildren();
+    const horizontal = x < 0.33 ? "left"
+      : x > 0.67 ? "right" : "center";
 
-      const steps = [
-        `Go to the ${data.building} building.`,
-        `Take the elevator or stairs to Floor ${floorNumber}.`,
-        `Once you reach Floor ${floorNumber}, look for the room number signs.`,
-        `Follow the signs toward Room ${roomNumber}.`,
-        `Look for the door labeled ${roomNumber}.`
-      ];
+    const vertical = y < 0.33 ? "upper"
+      : y > 0.67 ? "lower" : "middle";
 
-      // Use the room's approximate position on the floor map.
-      // This is NOT a verified walking route.
-      if (bounds && room.bbox) {
-        const centerX = room.bbox.cx;
-        const relativeX =
-          (centerX - bounds.x0) / bounds.w;
+    return { horizontal, vertical };
+  }
 
-        let locationHint;
+  function updateMode(mode) {
+    travelMode = mode;
 
-        if (relativeX < 0.33) {
-          locationHint = "left section";
-        } else if (relativeX > 0.67) {
-          locationHint = "right section";
-        } else {
-          locationHint = "central section";
-        }
+    elevatorBtn.classList.toggle("is-active", mode === "elevator");
+    stairsBtn.classList.toggle("is-active", mode === "stairs");
 
-        steps.splice(
-          4,
-          0,
-          `On the floor map, this room is in the ${locationHint}.`
-        );
-      }
+    elevatorBtn.setAttribute("aria-pressed", String(mode === "elevator"));
+    stairsBtn.setAttribute("aria-pressed", String(mode === "stairs"));
 
-      steps.forEach((instruction) => {
-        const li = document.createElement("li");
-        li.textContent = instruction;
-        stepsList.appendChild(li);
+    if (selected && !result.hidden) showDirections();
+  }
+
+  function showDirections() {
+    if (!selected || !bounds) return;
+
+    const room = selected;
+    const number = displayName(room);
+    const location = roomLocation(room);
+
+    $("fp-nav-room").textContent = "Room " + number;
+    $("fp-nav-location").textContent =
+      `${location.horizontal} side · ${location.vertical} section`;
+
+    const steps = [
+      `Go to the ${data.building} building.`,
+      `Take the ${travelMode} to Floor ${data.floor}.`,
+      `Check the floor map for the ${location.horizontal} side.`,
+      `Find the ${location.vertical} section of the floor map.`,
+      `Locate highlighted Room ${number} and follow the room signs.`
+    ];
+
+    stepsList.replaceChildren();
+
+    steps.forEach((instruction) => {
+      const li = document.createElement("li");
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      const text = document.createElement("span");
+
+      checkbox.type = "checkbox";
+      text.textContent = instruction;
+
+      checkbox.addEventListener("change", () => {
+        li.classList.toggle("is-complete", checkbox.checked);
+        updateProgress();
       });
 
-      note.textContent =
-        "These are general directions based on the floor map. " +
-        "Exact hallways and turns have not been verified.";
-
-      result.hidden = false;
-
-      // Highlight the destination using existing map functionality.
-      select(room, { zoom: true });
+      label.append(checkbox, text);
+      li.appendChild(label);
+      stepsList.appendChild(li);
     });
+
+    note.textContent =
+      "Approximate map guidance only. " +
+      "Actual hallways, entrances, and routes are not verified.";
+
+    result.hidden = false;
+    updateProgress();
   }
+
+  function updateProgress() {
+    const all = stepsList.querySelectorAll("input[type=checkbox]");
+    const completed = stepsList.querySelectorAll("input:checked");
+
+    progress.textContent =
+      `${completed.length} of ${all.length} steps completed`;
+
+    progress.classList.toggle(
+      "is-finished",
+      all.length > 0 && completed.length === all.length
+    );
+  }
+
+  elevatorBtn.addEventListener("click", () => updateMode("elevator"));
+  stairsBtn.addEventListener("click", () => updateMode("stairs"));
+
+  button.addEventListener("click", () => {
+    showDirections();
+    if (selected) zoomToRoom(selected, false);
+  });
+
+  focusBtn.addEventListener("click", () => {
+    if (selected) zoomToRoom(selected, false);
+  });
+}
+
 
   /* ---------------- events ---------------- */
   function bindEvents() {
