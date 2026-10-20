@@ -96,6 +96,42 @@
               </form>
             </details>
           </section>
+
+          <!-- ============ USER FEEDBACK & RATINGS ============ -->
+          <section class="fp-reviews" aria-labelledby="fp-reviews-title">
+            <h3 id="fp-reviews-title">Student Reviews</h3>
+
+            <!-- The Feed (pre-filled with a mock review) -->
+            <ul class="fp-reviews-list" id="fp-reviews-list" aria-live="polite">
+              <li class="review-card">
+                <div class="review-header">
+                  <span class="review-author">Anonymous Student</span> 
+                  <span class="review-rating">Quiet & Focused</span>
+                </div>
+                <p class="review-text">Great spot to study. The outlets actually work and it is usually empty before 10 AM.</p>
+              </li>
+            </ul>
+
+            <!-- The Submission Form -->
+            <details class="fp-add-review">
+              <summary>Leave a Review</summary>
+              <form class="fp-review-form" id="fp-review-form">
+                <label for="review-vibe">Room Vibe:</label>
+                <select id="review-vibe" required>
+                  <option value="">Select vibe...</option>
+                  <option value="Quiet & Focused">Quiet & Focused</option>
+                  <option value="Collaborative / Chatty">Collaborative / Chatty</option>
+                  <option value="Cramped & Loud">Cramped & Loud</option>
+                </select>
+
+                <label for="review-text">Comments:</label>
+                <textarea id="review-text" rows="3" placeholder="How was your experience?" required></textarea>
+
+                <button type="submit">Submit Review</button>
+              </form>
+            </details>
+          </section>
+
         </div>
       </section>
     </div>
@@ -103,5 +139,6 @@
 
   <script src="js/site.js"></script>
   <script src="js/floor.js"></script>
+  <script src="js/reviews.js"></script>
 </body>
 </html>
