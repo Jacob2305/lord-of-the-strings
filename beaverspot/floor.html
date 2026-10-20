@@ -15,7 +15,10 @@
   <a class="fp-skip" href="#fp-rooms">Skip to room list</a>
 
   <!-- shared header + breadcrumb, drawn by js/site.js (Home > NAC > Floor 6 from the URL) -->
-  <header id="site-header"><a href="index.html">BeaverSpot</a></header>
+  <header id="site-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <a href="index.html">BeaverSpot</a>
+    <button id="theme-toggle" aria-label="Toggle Dark Mode" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">🌙</button>
+  </header>
   <nav id="crumbs"></nav>
 
   <main class="fp-layout">
@@ -116,13 +119,15 @@
             <details class="fp-add-review">
               <summary>Leave a Review</summary>
               <form class="fp-review-form" id="fp-review-form">
-                <label for="review-vibe">Room Vibe:</label>
-                <select id="review-vibe" required>
-                  <option value="">Select vibe...</option>
-                  <option value="Quiet & Focused">Quiet & Focused</option>
-                  <option value="Collaborative / Chatty">Collaborative / Chatty</option>
-                  <option value="Cramped & Loud">Cramped & Loud</option>
-                </select>
+                
+                <label>Rating:</label>
+                <div class="star-rating">
+                  <input type="radio" id="star5" name="rating" value="5" required /><label for="star5" title="5 stars">★</label>
+                  <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars">★</label>
+                  <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars">★</label>
+                  <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars">★</label>
+                  <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star">★</label>
+                </div>
 
                 <label for="review-text">Comments:</label>
                 <textarea id="review-text" rows="3" placeholder="How was your experience?" required></textarea>
