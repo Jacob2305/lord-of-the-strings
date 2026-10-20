@@ -24,7 +24,7 @@ After using a space, students can rate their experience — comfort, accuracy of
 
 | Feature | Owner |
 |---|---|
-| Interactive Campus Map & Building Explorer | *Jacop* |
+| Interactive Campus Map & Building Explorer | *Jacob* |
 | Smart Recommendation Engine | *Subi* |
 | Amenity & Attribute Database | *Md Mamun* |
 | User Feedback & Ratings | *Furkan Bilgi* |
