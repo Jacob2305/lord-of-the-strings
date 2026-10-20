@@ -224,6 +224,7 @@
     buildEditor();
     bindEvents();
     bindSplitter();
+    setupDirections();
 
     const ro = new ResizeObserver(() => onResize());
     ro.observe(map);
@@ -436,6 +437,7 @@
     note.hidden = !notes.length;
     showAmenities(r);
     loadEditor(r);
+    $("fp-directions-result").hidden = true;
     showDetails(true);
 
     // jump the picker to this room's hundred (while filtering, the list shows matches instead)
@@ -882,6 +884,72 @@
     });
     $("fp-count").textContent = k + "00s · " + n + (n === 1 ? " room" : " rooms");
     $("fp-list").scrollTop = 0;
+  }
+
+  /* ---------------- Room Directions Feature ---------------- */
+
+  function setupDirections() {
+    const button = $("fp-get-directions");
+    const result = $("fp-directions-result");
+    const stepsList = $("fp-directions-steps");
+    const note = $("fp-directions-note");
+
+    button.addEventListener("click", () => {
+      if (!selected) return;
+
+      const room = selected;
+      const roomNumber = displayName(room);
+      const floorNumber = data.floor;
+
+      stepsList.replaceChildren();
+
+      const steps = [
+        `Go to the ${data.building} building.`,
+        `Take the elevator or stairs to Floor ${floorNumber}.`,
+        `Once you reach Floor ${floorNumber}, look for the room number signs.`,
+        `Follow the signs toward Room ${roomNumber}.`,
+        `Look for the door labeled ${roomNumber}.`
+      ];
+
+      // Use the room's approximate position on the floor map.
+      // This is NOT a verified walking route.
+      if (bounds && room.bbox) {
+        const centerX = room.bbox.cx;
+        const relativeX =
+          (centerX - bounds.x0) / bounds.w;
+
+        let locationHint;
+
+        if (relativeX < 0.33) {
+          locationHint = "left section";
+        } else if (relativeX > 0.67) {
+          locationHint = "right section";
+        } else {
+          locationHint = "central section";
+        }
+
+        steps.splice(
+          4,
+          0,
+          `On the floor map, this room is in the ${locationHint}.`
+        );
+      }
+
+      steps.forEach((instruction) => {
+        const li = document.createElement("li");
+        li.textContent = instruction;
+        stepsList.appendChild(li);
+      });
+
+      note.textContent =
+        "These are general directions based on the floor map. " +
+        "Exact hallways and turns have not been verified.";
+
+      result.hidden = false;
+
+      // Highlight the destination using existing map functionality.
+      select(room, { zoom: true });
+    });
   }
 
   /* ---------------- events ---------------- */
