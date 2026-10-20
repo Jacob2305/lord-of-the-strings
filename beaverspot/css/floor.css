@@ -40,13 +40,31 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   display: grid;
   grid-template-rows: minmax(0, 1fr);
 }
-/* a room is picked: map on top, details below (about 55 / 45) */
+/* a room is picked: map on top, drag handle, details below. The split starts at
+   55 / 45; dragging the handle changes --fp-map-fr and --fp-details-fr (set by js/floor.js). */
 .fp-stage.has-room {
-  grid-template-rows: minmax(0, 55fr) minmax(0, 45fr);
-  gap: 0.75rem;
+  grid-template-rows:
+    minmax(0, var(--fp-map-fr, 55fr))
+    0.75rem
+    minmax(0, var(--fp-details-fr, 45fr));
   padding: 0.75rem;
   background: #ebe7f1;
 }
+
+/* the handle fills the strip between map and details; a short bar marks it */
+.fp-split { display: none; }
+.fp-stage.has-room .fp-split {
+  display: grid; place-items: center;
+  cursor: row-resize; touch-action: none; outline: none;
+}
+.fp-split::before {
+  content: ""; width: 48px; height: 4px; border-radius: 2px;
+  background: #b3abbf; transition: background 0.12s, width 0.12s;
+}
+.fp-split:hover::before,
+.fp-split.is-dragging::before { background: var(--brand); width: 72px; }
+.fp-split:focus-visible::before { background: var(--accent); width: 72px; height: 6px; }
+body.is-splitting { cursor: row-resize; user-select: none; -webkit-user-select: none; }
 .fp-stage.has-room .fp-map { border-radius: var(--radius); border: 1px solid var(--border); }
 
 .fp-map {
@@ -388,6 +406,7 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   .fp-layout { grid-template-columns: 1fr; }
   .fp-stage { order: -1; grid-template-rows: 62vh; }
   .fp-stage.has-room { grid-template-rows: 50vh auto; padding: 0.5rem; gap: 0.5rem; }
+  .fp-stage.has-room .fp-split { display: none; }   /* page scrolls on phones, no split */
   .fp-details { overflow: visible; }
   .fp-details-body { grid-template-columns: 1fr; }
   .fp-soon--photo { aspect-ratio: 16 / 7; }
@@ -515,46 +534,6 @@ body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 .star-rating label:hover ~ label,
 .star-rating input:checked ~ label {
   color: #fbbf24; 
-}
-
-/* ============ DARK MODE OVERRIDES ============ */
-
-body, .fp-side, .fp-stage, .fp-details, .review-card {
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-body[data-theme="dark"] {
-  background-color: #0f172a;
-  color: #f8fafc;
-}
-
-body[data-theme="dark"] .fp-side,
-body[data-theme="dark"] .fp-details,
-body[data-theme="dark"] .review-card {
-  background-color: #1e293b;
-  border-color: #334155;
-  color: #e2e8f0;
-}
-
-body[data-theme="dark"] .fp-reviews h3,
-body[data-theme="dark"] .review-text {
-  color: #cbd5e1;
-}
-
-body[data-theme="dark"] .fp-review-form select,
-body[data-theme="dark"] .fp-review-form textarea {
-  background-color: #0f172a;
-  color: #f8fafc;
-  border-color: #475569;
-}
-
-body[data-theme="dark"] .fp-details-close {
-  color: #f8fafc;
-}
-
-body[data-theme="dark"] #site-header {
-  background-color: #1e293b;
-  border-bottom: 1px solid #334155;
 }
 
 /* ============ LIVE ACTIVITY PULSE ============ */

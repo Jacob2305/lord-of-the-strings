@@ -223,6 +223,7 @@
     buildFilters();
     buildEditor();
     bindEvents();
+    bindSplitter();
 
     const ro = new ResizeObserver(() => onResize());
     ro.observe(map);
@@ -464,6 +465,65 @@
     $("fp-details").hidden = !open;
     stage.classList.toggle("has-room", open);
     onResize();
+  }
+
+  /* ---------------- map / details splitter ---------------- */
+  // The handle between the map and the details panel. Dragging it (or arrow
+  // keys, Home/End) changes how much of the stage the map gets; double-click
+  // goes back to the default. The map keeps its zoom while resizing (onResize
+  // keeps view.s), so it shows more or less of the floor instead of stretching.
+  function bindSplitter() {
+    const handle = $("fp-split");
+    const stage = $("fp-stage");
+    const DEFAULT = 55, MIN = 15, MAX = 85;   // map's share of the stage, in %
+    const MIN_PX = 120;                       // neither side gets smaller than this
+    let share = DEFAULT;
+
+    function setShare(pct) {
+      // stage height minus padding and the handle strip = space to split
+      const total = $("fp-map").offsetHeight + $("fp-details").offsetHeight;
+      const lo = total ? Math.max(MIN, (MIN_PX / total) * 100) : MIN;
+      const hi = total ? Math.min(MAX, 100 - (MIN_PX / total) * 100) : MAX;
+      share = Math.round(clamp(pct, lo, Math.max(lo, hi)) * 10) / 10;
+      stage.style.setProperty("--fp-map-fr", share + "fr");
+      stage.style.setProperty("--fp-details-fr", (100 - share) + "fr");
+      handle.setAttribute("aria-valuenow", String(Math.round(share)));
+      onResize();
+    }
+
+    let drag = null;
+    handle.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const mapBox = $("fp-map").getBoundingClientRect();
+      const total = mapBox.height + $("fp-details").getBoundingClientRect().height;
+      drag = { id: e.pointerId, top: mapBox.top, total, grab: e.clientY - mapBox.bottom };
+      handle.setPointerCapture(e.pointerId);
+      handle.classList.add("is-dragging");
+      document.body.classList.add("is-splitting");
+    });
+    handle.addEventListener("pointermove", (e) => {
+      if (!drag || e.pointerId !== drag.id || !drag.total) return;
+      const mapH = e.clientY - drag.grab - drag.top;
+      setShare((mapH / drag.total) * 100);
+    });
+    const endDrag = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag = null;
+      handle.classList.remove("is-dragging");
+      document.body.classList.remove("is-splitting");
+    };
+    handle.addEventListener("pointerup", endDrag);
+    handle.addEventListener("pointercancel", endDrag);
+    handle.addEventListener("dblclick", () => setShare(DEFAULT));
+
+    handle.addEventListener("keydown", (e) => {
+      const step = e.shiftKey ? 10 : 3;
+      const next = { ArrowUp: share - step, ArrowDown: share + step, Home: MIN, End: MAX }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      setShare(next);
+    });
   }
 
   /* ---------------- room amenities ---------------- */

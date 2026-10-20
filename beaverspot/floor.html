@@ -15,10 +15,7 @@
   <a class="fp-skip" href="#fp-rooms">Skip to room list</a>
 
   <!-- shared header + breadcrumb, drawn by js/site.js (Home > NAC > Floor 6 from the URL) -->
-  <header id="site-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <a href="index.html">BeaverSpot</a>
-    <button id="theme-toggle" aria-label="Toggle Dark Mode" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">🌙</button>
-  </header>
+  <header id="site-header"><a href="index.html">BeaverSpot</a></header>
   <nav id="crumbs"></nav>
 
   <main class="fp-layout">
@@ -67,6 +64,12 @@
 
         <p class="fp-status" id="fp-status" role="status"></p>
       </section>
+
+      <!-- drag handle between map and details: drag (or arrow keys) to give either more room.
+           Wired up by js/floor.js (bindSplitter); hidden until a room is picked. -->
+      <div class="fp-split" id="fp-split" role="separator" aria-orientation="horizontal"
+           aria-label="Resize map and room details" aria-controls="fp-map fp-details"
+           aria-valuemin="15" aria-valuemax="85" aria-valuenow="55" tabindex="0"></div>
 
       <!-- ============ ROOM DETAILS: shown under the map once a room is picked ============ -->
       <section class="fp-details" id="fp-details" aria-labelledby="fp-details-title" hidden>

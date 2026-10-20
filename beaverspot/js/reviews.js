@@ -124,43 +124,4 @@ document.addEventListener("DOMContentLoaded", function () {
             if (detailsPanel) detailsPanel.open = false;
         });
     }
-
-    // ============ DARK MODE TOGGLE LOGIC ============
-    
-    const header = document.getElementById("site-header");
-    let themeToggleBtn = document.getElementById("theme-toggle");
-    
-    if (header && !themeToggleBtn) {
-        themeToggleBtn = document.createElement("button");
-        themeToggleBtn.id = "theme-toggle";
-        themeToggleBtn.setAttribute("aria-label", "Toggle Dark Mode");
-        themeToggleBtn.style.cssText = "background: none; border: none; font-size: 1.5rem; cursor: pointer; margin-left: auto; padding-right: 1rem;";
-        themeToggleBtn.textContent = "🌙";
-        
-        header.style.display = "flex";
-        header.style.alignItems = "center";
-        header.appendChild(themeToggleBtn);
-    }
-
-    const currentTheme = localStorage.getItem("beaverspot_theme");
-    if (currentTheme === "dark") {
-        document.body.setAttribute("data-theme", "dark");
-        if (themeToggleBtn) themeToggleBtn.textContent = "☀️";
-    }
-
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener("click", () => {
-            const isDark = document.body.getAttribute("data-theme") === "dark";
-            
-            if (isDark) {
-                document.body.removeAttribute("data-theme");
-                localStorage.setItem("beaverspot_theme", "light");
-                themeToggleBtn.textContent = "🌙"; 
-            } else {
-                document.body.setAttribute("data-theme", "dark");
-                localStorage.setItem("beaverspot_theme", "dark");
-                themeToggleBtn.textContent = "☀️"; 
-            }
-        });
-    }
 });
