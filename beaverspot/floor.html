@@ -80,30 +80,58 @@
         <p class="fp-details-where" id="fp-details-where"></p>
         <h2 id="fp-details-title" tabindex="-1"></h2>
         <p class="fp-details-note" id="fp-details-note" hidden></p>
+        
 
 <!-- Room Navigation Feature --> 
-<section class="fp-directions" aria-labelledby="fp-directions-title">
-  <h3 id="fp-directions-title">Room Navigation</h3>
 
-  <p>Need help finding this room?</p>
+<!-- Room Navigation Feature -->
+<section class="fp-directions" aria-labelledby="fp-directions-title">
+  <div class="fp-directions-heading">
+    <div>
+      <h3 id="fp-directions-title">🧭 Room Navigation</h3>
+      <p>Find your way around the floor.</p>
+    </div>
+    <span class="fp-nav-badge">Map Guide</span>
+  </div>
+
+  <div class="fp-nav-destination">
+    <span class="fp-nav-label">YOUR DESTINATION</span>
+    <strong id="fp-nav-room">Select a room</strong>
+    <span id="fp-nav-location">Floor location</span>
+  </div>
+
+  <p class="fp-nav-label">How would you like to get there?</p>
+  <div class="fp-nav-modes" role="group" aria-label="Travel method">
+    <button type="button" class="is-active"
+            id="fp-nav-elevator" aria-pressed="true">
+      🛗 Elevator
+    </button>
+    <button type="button" id="fp-nav-stairs"
+            aria-pressed="false">
+      🪜 Stairs
+    </button>
+  </div>
 
   <button type="button" id="fp-get-directions">
-    Get Directions
+    Get Directions →
   </button>
 
   <div id="fp-directions-result" hidden>
-    <h4>How to get there</h4>
+    <h4>📍 Your directions</h4>
     <ol id="fp-directions-steps"></ol>
+    <p id="fp-directions-progress"></p>
+    <button type="button" id="fp-nav-focus">
+      ◎ Show Room on Map
+    </button>
     <p id="fp-directions-note"></p>
   </div>
 </section>
 
-        <p class="fp-details-note" id="fp-details-note" hidden></p>
-        <div class="fp-details-body">
-          <div class="fp-soon fp-soon--photo" aria-hidden="true">
-            <svg viewBox="0 0 48 36"><rect x="3" y="5" width="42" height="28" rx="3"/><circle cx="16" cy="15" r="4"/><path d="m3 29 13-10 9 7 7-5 13 9"/></svg>
-            <span>Photos</span>
-          </div>
+
+
+
+
+<div class="fp-details-body">
           <!-- amenities: filled by js/floor.js from data/amenities-6.json -->
           <section class="fp-amenities" aria-labelledby="fp-amenities-title">
             <h3 id="fp-amenities-title">Amenities</h3>
