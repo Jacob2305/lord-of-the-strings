@@ -15,7 +15,10 @@
   <a class="fp-skip" href="#fp-rooms">Skip to room list</a>
 
   <!-- shared header + breadcrumb, drawn by js/site.js (Home > NAC > Floor 6 from the URL) -->
-  <header id="site-header"><a href="index.html">BeaverSpot</a></header>
+  <header id="site-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <a href="index.html">BeaverSpot</a>
+    <button id="theme-toggle" aria-label="Toggle Dark Mode" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">🌙</button>
+  </header>
   <nav id="crumbs"></nav>
 
   <main class="fp-layout">

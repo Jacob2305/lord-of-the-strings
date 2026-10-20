@@ -536,6 +536,46 @@ body.is-splitting { cursor: row-resize; user-select: none; -webkit-user-select: 
   color: #fbbf24; 
 }
 
+/* ============ DARK MODE OVERRIDES ============ */
+
+body, .fp-side, .fp-stage, .fp-details, .review-card {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body[data-theme="dark"] {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+body[data-theme="dark"] .fp-side,
+body[data-theme="dark"] .fp-details,
+body[data-theme="dark"] .review-card {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+body[data-theme="dark"] .fp-reviews h3,
+body[data-theme="dark"] .review-text {
+  color: #cbd5e1;
+}
+
+body[data-theme="dark"] .fp-review-form select,
+body[data-theme="dark"] .fp-review-form textarea {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+body[data-theme="dark"] .fp-details-close {
+  color: #f8fafc;
+}
+
+body[data-theme="dark"] #site-header {
+  background-color: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
 /* ============ LIVE ACTIVITY PULSE ============ */
 .has-active-reviews {
   fill: #fde047 !important; 
