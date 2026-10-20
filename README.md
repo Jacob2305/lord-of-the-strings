@@ -20,6 +20,8 @@ Every space in BeaverSpot is backed by detailed, structured data: outlets, micro
 ### 4. User Feedback & Ratings
 After using a space, students can rate their experience — comfort, accuracy of the noise level, overall vibe. Over time, this builds a reputation score for each room and helps surface the most-loved study spots on campus.
 
+
+
 ## Team
 
 | Feature | Owner |
